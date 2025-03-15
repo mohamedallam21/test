@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Gazebo arguments -->
+    <arg name="world" default="empty" />
+    <arg name="paused" default="false" />
+    <arg name="use_sim_time" default="true" />
+    <arg name="gui" default="true" />
+    <arg name="headless" default="false" />
+    <arg name="debug" default="false" />
+    <arg name="world_file" default="$(find soly)/world/world.world" />
+
+    <!-- Map Server -->
+    <node name="map_server" pkg="map_server" type="map_server"
+        args="$(find soly)/maps/map.yaml" />
+
+    <!-- Launch Gazebo -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="world_name" value="$(arg world_file)" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="paused" value="$(arg paused)" />
+        <arg name="use_sim_time" value="$(arg use_sim_time)" />
+        <arg name="headless" value="$(arg headless)" />
+        <arg name="verbose" value="false" />
+    </include>
+
+    <!-- Convert Xacro and put on parameter server -->
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find soly)/urdf/robot.xacro" />
+
+    <!-- Spawn a robot into Gazebo -->
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-param robot_description -urdf -y 1 -model nomeer_robot" />
+
+    <!-- Publish robot states to TF -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+        <param name="publish_frequency" value="30.0" />
+        <output>screen</output>
+        <respawn>false</respawn>
+    </node>
+
+    <!-- Joint State Publisher -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+        <param name="rate" value="30" />
+    </node>
+
+    <!-- Run RViz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_navigation)/rviz/nomeer.rviz" />
+
+</launch>
