@@ -1,0 +1,54 @@
+<launch>
+  <!-- Start Gazebo with a custom world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="debug" value="false"/>
+    <arg name="gui" value="true"/>
+    <!-- Specify the path to your custom world file -->
+    <arg name="world_name" value="$(find soly)/world/world.world"/>
+  </include>
+
+  <!-- Robot pose arguments -->
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="z" default="0"/>
+  <arg name="roll" default="0"/>
+  <arg name="pitch" default="0"/>
+  <arg name="yaw" default="0"/>
+
+  <!-- Load the URDF model into Gazebo -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find soly)/urdf/robot.xacro'" />
+
+  <!-- Send robot states to tf -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>
+
+  <!-- Send fake joint values -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="false"/>
+  </node>
+
+  <!-- Spawn the robot model into Gazebo -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+        args="-urdf -param robot_description -model skid_robot
+              -x $(arg x) -y $(arg y) -z $(arg z)
+              -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)" />
+
+  <!-- Load the map -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find soly)/maps/map.yaml">
+    <param name="frame_id" value="map"/> <!-- Ensure the map frame is set correctly -->
+  </node>
+
+  <!-- Start RViz with the configuration file -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find soly)/rviz/turtlebot3_navigation.rviz" />
+
+  <!-- Optional: Launch AMCL for localization -->
+
+  <include file="$(find soly)/launch/amcl.launch"/>
+  
+
+  <!-- Optional: Launch move_base for navigation -->
+  
+  <include file="$(find soly)/launch/move_base.launch"/>
+  
+</launch>

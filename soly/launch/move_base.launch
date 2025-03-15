@@ -1,0 +1,11 @@
+<launch>
+  <!-- Launch move_base -->
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <rosparam file="$(find soly)/config/costmap_common_params.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find soly)/config/costmap_common_params.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find soly)/config/local_costmap_params.yaml" command="load"/>
+    <rosparam file="$(find soly)/config/global_costmap_params.yaml" command="load"/>
+    <rosparam file="$(find soly)/config/move_base_params.yaml" command="load"/>
+    <rosparam file="$(find soly)/config/dwa_local_planner_params.yaml" command="load"/>
+  </node>
+</launch>
